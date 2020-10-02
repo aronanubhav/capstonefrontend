@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capstonefrontend
+  labels:
+    app: capstonefrontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: capstonefrontend
+  template:
+    metadata:
+      labels:
+        app: capstonefrontend
+    spec:
+      containers:
+      - name: capstonefrontend
+        image: aronanubhav/capstonefrontend
+        resources:
+          limits:
+            cpu: "1.5"
+          requests:
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 30000000
