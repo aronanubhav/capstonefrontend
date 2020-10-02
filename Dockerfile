@@ -16,5 +16,6 @@ RUN npm install
 # Bundle app source
 COPY . .
 
+#Runs the frontend & is used to get the index page up
 EXPOSE 3000
 CMD [ "npm", "start" ]
