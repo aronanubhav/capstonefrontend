@@ -1,0 +1,76 @@
+var sheetName = 'Sheet1'
+var scriptProp = PropertiesService.getScriptProperties()
+
+  var master_file = DriveApp.getFileById('1ZWT6Y0euH7NP8mpv6gxjhBRZDwSnjvCJTZOeMCl5UJQ');
+  var master_doc_id = master_file.getId();
+
+
+function intialSetup () {
+  scriptProp.setProperty('key', '1ZWT6Y0euH7NP8mpv6gxjhBRZDwSnjvCJTZOeMCl5UJQ')
+   Logger.log('2');
+}
+
+function doPost (e) {
+  Logger.log('1');
+  Logger.log(master_doc_id);
+  //var lock = LockService.getScriptLock()
+  //lock.tryLock(10000)
+  //try {
+    var doc = SpreadsheetApp.openById('1ZWT6Y0euH7NP8mpv6gxjhBRZDwSnjvCJTZOeMCl5UJQ')
+    var sheet = doc.getSheetByName(sheetName)
+
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
+    var nextRow = sheet.getLastRow() + 1
+
+    var newRow = headers.map(function(header) {
+      return header === 'timestamp' ? new Date() : e.parameter[header]
+    })
+      Logger.log('2');
+
+    sheet.getRange(nextRow, 1, 1, newRow.length).setValues([newRow])
+    
+  var mSheetArray = sheet.getDataRange().getValues();
+  
+ // Process each row
+ for (var i = 1; i < mSheetArray.length; i++) {
+   
+   if (sheet.getRange(i+1, 3).getValue() !== "done") {
+       var entityCellVal = mSheetArray[i][1];
+       var nlData = retrieveSentiment(entityCellVal);
+       
+       sheet.getRange(i+1, 4).setValue(nlData[0].score);   
+       // Paste "done" into entity_sentiment column to denote completion of NL API call
+       if (sheet.getRange(i+1, 3).getValue() !== "done") {
+         sheet.getRange(i+1, 3).setValue("done");
+       }  
+   }
+   }
+ 
+}
+
+
+function retrieveSentiment (line) {
+  
+  var apiKey = "AIzaxxxxxxxxxxxxxxxxxxxxxxx";
+ 
+ var apiEndpoint = 'https://language.googleapis.com/v1/documents:analyzeSentiment?key=' + apiKey;
+ // Create our json request, w/ text, language, type & encoding
+  var nlData = {
+   document: {
+     language: 'en-us',
+     type: 'PLAIN_TEXT',
+     content: line
+   },
+   encodingType: 'UTF8'  };
+ //  Package all of the options and the data together for the call
+ var nlOptions = {
+   method : 'post',
+   contentType: 'application/json',
+   payload : JSON.stringify(nlData)  
+ };
+ //  And make the call
+  var response = UrlFetchApp.fetch(apiEndpoint, nlOptions);
+  var result = JSON.parse(response.getContentText());
+  return [result.documentSentiment, result.sentences, result.sentences.sentiment];
+ 
+}
