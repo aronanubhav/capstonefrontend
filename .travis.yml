@@ -18,6 +18,7 @@ script:
   - docker build -t capstonefrontend .
   - docker tag capstonefrontend aronanubhav/capstonefrontend:latest
 
+#Password & Username set in Travis Env variables
 after_success:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker push aronanubhav/capstonefrontend
